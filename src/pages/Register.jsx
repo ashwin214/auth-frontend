@@ -23,7 +23,7 @@ function Register() {
       return;
     }
 
-    const backendUrl =
+    let backendUrl =
       import.meta.env.VITE_API_URL ||
       (window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1"
@@ -31,13 +31,29 @@ function Register() {
         : "https://auth-backend-lr60.onrender.com");
 
     try {
-      const response = await fetch(`${backendUrl}/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      let response;
+      try {
+        response = await fetch(`${backendUrl}/auth/signup`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+      } catch (netErr) {
+        if (backendUrl.includes("localhost")) {
+          backendUrl = "https://auth-backend-lr60.onrender.com";
+          response = await fetch(`${backendUrl}/auth/signup`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          });
+        } else {
+          throw netErr;
+        }
+      }
 
       const result = await response.json();
 
@@ -53,11 +69,11 @@ function Register() {
         alert(result.message || "User registered successfully!");
         navigate("/login");
       } else {
-        alert(result.message || "Registration failed");
+        alert(result.message || result.error || "Registration failed");
       }
     } catch (error) {
       console.error("Signup error:", error);
-      alert("Something went wrong!");
+      alert("Unable to connect to server. Please check your internet connection or server status.");
     }
   };
 
