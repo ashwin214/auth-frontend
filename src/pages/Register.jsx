@@ -23,17 +23,21 @@ function Register() {
       return;
     }
 
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://localhost:8080"
+        : "https://auth-backend-lr60.onrender.com");
+
     try {
-      const response = await fetch(
-        "https://auth-backend-lr60.onrender.com/auth/signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
+      const response = await fetch(`${backendUrl}/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(formData),
+      });
 
       const result = await response.json();
 
@@ -46,11 +50,13 @@ function Register() {
           confirmPassword: "",
         });
 
+        alert(result.message || "User registered successfully!");
         navigate("/login");
       } else {
-        alert(result.message);
+        alert(result.message || "Registration failed");
       }
     } catch (error) {
+      console.error("Signup error:", error);
       alert("Something went wrong!");
     }
   };
